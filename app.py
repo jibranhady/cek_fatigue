@@ -1,25 +1,30 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, send_file
 import pandas as pd
 import os
+from io import BytesIO
 
 app = Flask(__name__)
 
 # =========================
-# PATH FILE
+# PATH
 # =========================
 UPLOAD_PATH = "upload.xlsx"
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 df_raw = pd.read_excel(os.path.join(BASE_DIR, "Rawdata.xlsx"))
 
+# simpan hasil terakhir (buat export)
+last_rows = []
+
 
 @app.route("/", methods=["GET", "POST"])
 def index():
+    global last_rows
 
     hasil = None
 
     # =========================
-    # UPLOAD FILE LAPORAN
+    # UPLOAD FILE
     # =========================
     if request.method == "POST" and "file" in request.files:
 
@@ -30,22 +35,24 @@ def index():
             hasil = "✅ File laporan berhasil diupload"
 
     # =========================
-    # BULK CEK RAW DATA
+    # BULK CEK RAW
     # =========================
     if request.method == "POST" and "raw" in request.form:
 
         if not os.path.exists(UPLOAD_PATH):
             hasil = "❌ Upload laporan dulu"
+
         else:
 
             raw_text = request.form["raw"]
 
             if not raw_text.strip():
                 hasil = "❌ Tidak ada input"
+
             else:
 
                 # =========================
-                # LOAD DATA EVENT + STATUS CONTEXT
+                # LOAD EVENT DATA
                 # =========================
                 df_event = pd.read_excel(
                     UPLOAD_PATH,
@@ -66,6 +73,9 @@ def index():
 
                 rows = []
 
+                # =========================
+                # LOOP RAW
+                # =========================
                 for raw in raw_text.splitlines():
 
                     raw = raw.strip().upper()
@@ -114,12 +124,44 @@ def index():
                                 row["INTERVENSI - STATUS CONTEXT"]
                             ])
 
-                    except:
+                    except Exception:
                         rows.append([raw, "❌ Format salah", "", "", "", ""])
 
                 hasil = rows
+                last_rows = rows  # simpan buat export
 
     return render_template("index.html", hasil=hasil)
+
+
+# =========================
+# EXPORT EXCEL
+# =========================
+@app.route("/export")
+def export_excel():
+
+    global last_rows
+
+    if not last_rows:
+        return "Tidak ada data untuk diexport"
+
+    df_export = pd.DataFrame(last_rows, columns=[
+        "RAW",
+        "Nama Unit",
+        "Pelanggaran",
+        "Waktu Kejadian",
+        "Masuk Gabungan",
+        "Status Context"
+    ])
+
+    output = BytesIO()
+    df_export.to_excel(output, index=False)
+    output.seek(0)
+
+    return send_file(
+        output,
+        download_name="hasil_cek_raw.xlsx",
+        as_attachment=True
+    )
 
 
 if __name__ == "__main__":
