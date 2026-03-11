@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <title>Cek RAW</title>
 
-<!-- BOOTSTRAP -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <style>
@@ -16,17 +15,16 @@ body{
     border-radius:12px;
 }
 
-.result-card{
-    border-left:6px solid #0d6efd;
-    border-radius:10px;
+.table td{
+    white-space:nowrap;
 }
 
-.success{
-    border-left:6px solid #198754;
+.badge-true{
+    background:#198754;
 }
 
-.error{
-    border-left:6px solid #dc3545;
+.badge-false{
+    background:#dc3545;
 }
 </style>
 
@@ -37,30 +35,27 @@ body{
 
 <!-- TITLE -->
 <div class="text-center mb-4">
-    <h2 class="fw-bold">Cek RAW Fatigue</h2>
-    <p class="text-muted">Upload laporan lalu cek raw sepuasnya</p>
+<h2 class="fw-bold">Cek RAW Fatigue</h2>
+<p class="text-muted">Upload laporan lalu cek raw sepuasnya</p>
 </div>
 
 <div class="row g-4">
 
-<!-- UPLOAD CARD -->
+<!-- UPLOAD -->
 <div class="col-md-5">
 <div class="card shadow-sm card-box p-4">
 
 <h5 class="mb-3">📂 Upload Laporan</h5>
 
 <form method="post" enctype="multipart/form-data">
-<div class="mb-3">
-<input class="form-control" type="file" name="file" required>
-</div>
-
+<input class="form-control mb-3" type="file" name="file" required>
 <button class="btn btn-primary w-100">Upload</button>
 </form>
 
 </div>
 </div>
 
-<!-- CEK RAW CARD -->
+<!-- BULK -->
 <div class="col-md-7">
 <div class="card shadow-sm card-box p-4">
 
@@ -79,7 +74,18 @@ contoh:
 SLS30I386-CLOSEDEYES_20260224_011828
 SLS30I387-YAWN_20260224_021500"></textarea>
 
-<button class="btn btn-success mt-3 w-100">Cek Semua</button>
+<div class="d-flex gap-2 mt-3">
+
+<button class="btn btn-success w-100">Cek Semua</button>
+
+<button type="button" class="btn btn-outline-secondary w-100"
+onclick="document.getElementById('rawInput').value=''">
+Clear
+</button>
+
+</div>
+
+<small class="text-muted">Tip: tekan <b>Ctrl + Enter</b> untuk submit</small>
 
 </form>
 
@@ -94,19 +100,26 @@ SLS30I387-YAWN_20260224_021500"></textarea>
 <div class="mt-4">
 
 {% if hasil is string %}
-<div class="card shadow-sm p-3 result-card error">
+<div class="alert alert-danger shadow-sm">
 {{ hasil }}
 </div>
 
 {% else %}
 
-<div class="card shadow-sm p-4 result-card success">
+<div class="card shadow-sm p-4">
 
-<h5 class="mb-3">✅ Hasil</h5>
+<div class="d-flex justify-content-between align-items-center mb-3">
+<h5 class="mb-0">✅ Hasil</h5>
+
+<a href="/export" class="btn btn-success">
+⬇ Export Excel
+</a>
+
+</div>
 
 <div class="table-responsive">
 
-<table class="table table-bordered table-striped">
+<table class="table table-bordered table-striped table-hover">
 
 <thead class="table-dark">
 <tr>
@@ -115,6 +128,7 @@ SLS30I387-YAWN_20260224_021500"></textarea>
 <th>Pelanggaran</th>
 <th>Waktu Kejadian</th>
 <th>Masuk Gabungan</th>
+<th>Status</th>
 </tr>
 </thead>
 
@@ -127,6 +141,17 @@ SLS30I387-YAWN_20260224_021500"></textarea>
 <td>{{ r[2] }}</td>
 <td>{{ r[3] }}</td>
 <td>{{ r[4] }}</td>
+
+<td>
+{% if r[5]|string|upper == "TRUE" %}
+<span class="badge badge-true">TRUE</span>
+{% elif r[5]|string|upper == "FALSE" %}
+<span class="badge badge-false">FALSE</span>
+{% else %}
+{{ r[5] }}
+{% endif %}
+</td>
+
 </tr>
 {% endfor %}
 
@@ -144,7 +169,7 @@ SLS30I387-YAWN_20260224_021500"></textarea>
 
 </div>
 
-<!-- AUTO FOCUS + ENTER SUBMIT -->
+
 <script>
 document.getElementById("rawInput").focus();
 
