@@ -64,23 +64,23 @@ body{
 <div class="col-md-7">
 <div class="card shadow-sm card-box p-4">
 
-<h5 class="mb-3">🔎 Cek RAW Data</h5>
+<h5 class="mb-3">🔎 Bulk Cek RAW</h5>
 
 <form method="post">
-<div class="input-group">
 
-<input 
-type="text" 
+<textarea 
 name="raw" 
 id="rawInput"
-class="form-control" 
-placeholder="Paste raw di sini..."
-autocomplete="off"
-required>
+class="form-control"
+rows="6"
+placeholder="Paste banyak raw di sini...
 
-<button class="btn btn-success">Cek</button>
+contoh:
+SLS30I386-CLOSEDEYES_20260224_011828
+SLS30I387-YAWN_20260224_021500"></textarea>
 
-</div>
+<button class="btn btn-success mt-3 w-100">Cek Semua</button>
+
 </form>
 
 </div>
@@ -99,45 +99,60 @@ required>
 </div>
 
 {% else %}
+
 <div class="card shadow-sm p-4 result-card success">
 
 <h5 class="mb-3">✅ Hasil</h5>
 
-<div class="row">
+<div class="table-responsive">
 
-<div class="col-md-6 mb-2">
-<b>Nama Unit</b><br>
-{{ hasil.unit }}
+<table class="table table-bordered table-striped">
+
+<thead class="table-dark">
+<tr>
+<th>RAW</th>
+<th>Nama Unit</th>
+<th>Pelanggaran</th>
+<th>Waktu Kejadian</th>
+<th>Masuk Gabungan</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for r in hasil %}
+<tr>
+<td>{{ r[0] }}</td>
+<td>{{ r[1] }}</td>
+<td>{{ r[2] }}</td>
+<td>{{ r[3] }}</td>
+<td>{{ r[4] }}</td>
+</tr>
+{% endfor %}
+
+</tbody>
+
+</table>
+
 </div>
 
-<div class="col-md-6 mb-2">
-<b>Jenis Pelanggaran</b><br>
-{{ hasil.pelanggaran }}
 </div>
 
-<div class="col-md-6 mb-2">
-<b>Waktu Kejadian</b><br>
-{{ hasil.kejadian }}
-</div>
-
-<div class="col-md-6 mb-2">
-<b>Waktu Gabungan</b><br>
-{{ hasil.gabungan }}
-</div>
-
-</div>
-
+{% endif %}
 </div>
 {% endif %}
 
 </div>
-{% endif %}
 
-</div>
-
-<!-- AUTO FOCUS -->
+<!-- AUTO FOCUS + ENTER SUBMIT -->
 <script>
 document.getElementById("rawInput").focus();
+
+document.getElementById("rawInput").addEventListener("keydown", function(e){
+    if(e.key === "Enter" && e.ctrlKey){
+        this.form.submit();
+    }
+});
 </script>
 
 </body>
