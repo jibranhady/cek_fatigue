@@ -44,10 +44,17 @@ def index():
                 hasil = "❌ Tidak ada input"
             else:
 
-                # load file event tiap request (anti crash Railway)
+                # =========================
+                # LOAD DATA EVENT + STATUS CONTEXT
+                # =========================
                 df_event = pd.read_excel(
                     UPLOAD_PATH,
-                    usecols=["KODE KENDARAAN", "WAKTU KEJADIAN", "WAKTU KE SERVER GABUNGAN"]
+                    usecols=[
+                        "KODE KENDARAAN",
+                        "WAKTU KEJADIAN",
+                        "WAKTU KE SERVER GABUNGAN",
+                        "INTERVENSI - STATUS CONTEXT"
+                    ]
                 )
 
                 df_event["WAKTU KEJADIAN"] = pd.to_datetime(df_event["WAKTU KEJADIAN"])
@@ -69,18 +76,25 @@ def index():
                         bagian1, tanggal, jam = raw.split("_")
                         unit_raw, pelanggaran = bagian1.split("-")
 
+                        # kurangi 1 jam
                         jam_dt = pd.to_datetime(jam, format="%H%M%S") - pd.Timedelta(hours=1)
                         jam_final = jam_dt.strftime("%H%M%S")
 
+                        # =========================
+                        # CEK UNIT
+                        # =========================
                         cek_unit = df_raw[df_raw["deviceid"] == unit_raw]
 
                         if cek_unit.empty:
-                            rows.append([raw, "❌ Unit tidak ditemukan", "", "", ""])
+                            rows.append([raw, "❌ Unit tidak ditemukan", "", "", "", ""])
                             continue
 
                         nama_unit = cek_unit.iloc[0]["unitno"]
                         angka_unit = ''.join(filter(str.isdigit, nama_unit))
 
+                        # =========================
+                        # CARI EVENT
+                        # =========================
                         cari = df_event[
                             (df_event["ANGKA_UNIT"] == angka_unit) &
                             (df_event["JAM"] == jam_final) &
@@ -88,7 +102,7 @@ def index():
                         ]
 
                         if cari.empty:
-                            rows.append([raw, nama_unit, pelanggaran, "❌ Tidak ditemukan", ""])
+                            rows.append([raw, nama_unit, pelanggaran, "❌ Tidak ditemukan", "", ""])
                         else:
                             row = cari.iloc[0]
                             rows.append([
@@ -96,11 +110,12 @@ def index():
                                 nama_unit,
                                 pelanggaran,
                                 row["WAKTU KEJADIAN"],
-                                row["WAKTU KE SERVER GABUNGAN"]
+                                row["WAKTU KE SERVER GABUNGAN"],
+                                row["INTERVENSI - STATUS CONTEXT"]
                             ])
 
                     except:
-                        rows.append([raw, "❌ Format salah", "", "", ""])
+                        rows.append([raw, "❌ Format salah", "", "", "", ""])
 
                 hasil = rows
 
